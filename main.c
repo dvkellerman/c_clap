@@ -34,6 +34,7 @@ char *trim(char *input) { return rtrim(ltrim(input)); }                        \
 
 size_t type_size(const char* type_token)
 {
+  // TODO: add more types
   if (strcmp(type_token, "int") == 0) {
     return 4;
   } else if(strcmp(type_token,"char*") == 0) {
