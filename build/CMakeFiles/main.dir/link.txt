@@ -1,0 +1,1 @@
+/usr/lib64/ccache/cc CMakeFiles/main.dir/main.c.o -o main 
