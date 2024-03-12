@@ -39,7 +39,7 @@ static const char* __builtin_stack_address()
   return res;
 }
 
-size_t size_of(const char* type_token)
+size_t type_size(const char* type_token)
 {
   if (strcmp(type_token, "int") == 0) {
     return 4;
@@ -63,13 +63,9 @@ struct CLI* parse(const int argc, char **argv) {
   char *fcopy = strdup(format), *token, *subtoken;
 
   // Usage string, used to display names of arguments
-  int nameLen = strlen(argv[0]);
-  for(int i = 1; i < argc; i++)
-  {
-    nameLen += strlen(argv[1]) + 15;
-  }
-  char *usage = malloc(nameLen * sizeof(char));
-  usage = strncpy(usage, argv[0], nameLen);
+  const int usage_leng = strlen(argv[0]) + strlen(format) + 30;
+  char *usage = malloc(usage_leng);
+  usage = strncpy(usage, argv[0], strlen(argv[0]));
 
   // types
   char** types = malloc(sizeof(char**) * argc-1);
@@ -113,34 +109,32 @@ struct CLI* parse(const int argc, char **argv) {
     return NULL;
   }
 
-  // declare params
-  const size_t cli_size = sizeof(struct CLI);
-  size_t offset = 0;
-
-  // get stack pointer
-
-  const char* type_tkn = NULL;
-  const char **start = (char**)(__builtin_stack_address() + cli_size);
-  params;
-
+  // cli on stack
+  struct CLI cli = { 0 };
+  char* cli_ptr = (char*)&cli;
+  char* argv2 = (char*)&cli.age;
+  char* argv3 = (char*)&cli.home;
 
   // fill params from argv
+  size_t offset = 0;
   for(int i = 1; i < argc; i++)
   {
-    type_tkn = *(types+i-1);
+    const char* type_tkn = *(types+i-1);
+    char** iterator = cli_ptr+offset;
     if (strcmp(type_tkn, "int") == 0) {
-      *(start+offset) = (char*)atoi(argv[i]);
+      *iterator = (char*)atoi(argv[i]);
     } else if(strcmp(type_tkn, "char*") == 0) {
-      *(start+offset) = argv[i];
+      *iterator = argv[i];
     } else {
       printf("Usage %s\n", usage);
     }
-    offset += size_of(type_tkn);
+    offset += type_size(type_tkn);
   }
 
   // copy struct CLI from stack pointer
+  const size_t cli_size = sizeof(struct CLI);
   struct CLI *c = malloc(cli_size);
-  memcpy(c, start, cli_size);
+  memcpy(c, cli_ptr, cli_size);
   return c;
 };
 
