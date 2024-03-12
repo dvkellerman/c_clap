@@ -1,3 +1,0 @@
-/home/dkeller/Desktop/Clang/build/CMakeFiles/main.dir
-/home/dkeller/Desktop/Clang/build/CMakeFiles/edit_cache.dir
-/home/dkeller/Desktop/Clang/build/CMakeFiles/rebuild_cache.dir
