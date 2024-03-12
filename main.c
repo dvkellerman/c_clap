@@ -32,13 +32,6 @@ char *rtrim(char *input) {                                                     \
                                                                                \
 char *trim(char *input) { return rtrim(ltrim(input)); }                        \
 
-static const char* __builtin_stack_address()
-{
-  char* res = NULL;
-  asm("mov %%rsp, %0":"=a"(res));
-  return res;
-}
-
 size_t type_size(const char* type_token)
 {
   if (strcmp(type_token, "int") == 0) {
@@ -49,6 +42,21 @@ size_t type_size(const char* type_token)
     return 0;
   }
 }
+
+int fill_pointer_with_value_type(char** pointer, const char* type_tkn, char* type_value)
+{
+    // TODO: add more types
+    if (strcmp(type_tkn, "int") == 0) {
+      *pointer = (char*)atoi(type_value);
+      return 1;
+    } else if(strcmp(type_tkn, "char*") == 0) {
+      *pointer = type_value;
+      return 1;
+    } else {
+      return 0;
+    }
+}
+
 
 CLI(char *username; int age; char *home;)
 
@@ -112,21 +120,17 @@ struct CLI* parse(const int argc, char **argv) {
   // cli on stack
   struct CLI cli = { 0 };
   char* cli_ptr = (char*)&cli;
-  char* argv2 = (char*)&cli.age;
-  char* argv3 = (char*)&cli.home;
 
-  // fill params from argv
+  // fill cli on stack from argv
   size_t offset = 0;
   for(int i = 1; i < argc; i++)
   {
     const char* type_tkn = *(types+i-1);
     char** iterator = cli_ptr+offset;
-    if (strcmp(type_tkn, "int") == 0) {
-      *iterator = (char*)atoi(argv[i]);
-    } else if(strcmp(type_tkn, "char*") == 0) {
-      *iterator = argv[i];
-    } else {
-      printf("Usage %s\n", usage);
+    if(!fill_pointer_with_value_type(iterator, type_tkn,argv[i]))
+    {
+      printf("Usage: %s\n", usage);
+      return NULL;
     }
     offset += type_size(type_tkn);
   }
@@ -143,7 +147,7 @@ int main(const int argc, char *argv[]) {
 
   if (cli == NULL) return EXIT_FAILURE;
 
-  printf("Hello, %s \n", cli->username);
+  printf("Hello, %s, age %d at location %s\n", cli->username, cli->age, cli->home);
 
   return EXIT_SUCCESS;
 }
